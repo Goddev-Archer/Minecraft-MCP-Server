@@ -171,6 +171,31 @@ const FALLBACK_TOOLS = [
         }
       }
     }
+  },
+  {
+    name: "simulate_input",
+    description: "Simuliert echte physische Tastendrücke (Vorwärts, Rückwärts, Seitwärts, Springen, Schleichen, Angreifen, Benutzen). Nutzt die native Minecraft-Physik, verhindert Glitches durch Blöcke und ist zu 100% kompatibel mit Mods und Anti-Cheat.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          description: "Aktion: 'forward', 'back', 'left', 'right', 'jump', 'sneak', 'sprint', 'attack', 'use' oder 'release_all'"
+        },
+        duration_ticks: {
+          type: "integer",
+          description: "Dauer in Minecraft-Ticks (20 Ticks = 1 Sekunde). Standard: 10 Ticks."
+        },
+        yaw: {
+          type: "number",
+          description: "Optionaler Blickwinkel Yaw (horizontale Drehung), wohin der Spieler vor der Bewegung schauen soll."
+        },
+        pitch: {
+          type: "number",
+          description: "Optionaler Blickwinkel Pitch (Neigung -90 bis 90)."
+        }
+      }
+    }
   }
 ];
 

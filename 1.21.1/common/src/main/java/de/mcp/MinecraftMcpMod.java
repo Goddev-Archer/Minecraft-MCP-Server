@@ -2,6 +2,7 @@ package de.mcp;
 
 import de.mcp.api.McpToolRegistry;
 import de.mcp.config.McpConfig;
+import de.mcp.input.InputSimulationManager;
 import de.mcp.log.InGameLogSniffer;
 import de.mcp.server.McpNettyServer;
 import de.mcp.tools.ExecuteCommandTool;
@@ -11,6 +12,7 @@ import de.mcp.tools.InspectNbtTool;
 import de.mcp.tools.RaycastTargetTool;
 import de.mcp.tools.ScanBlocksTool;
 import de.mcp.tools.SendChatTool;
+import de.mcp.tools.SimulateInputTool;
 
 import java.nio.file.Path;
 
@@ -23,8 +25,9 @@ public class MinecraftMcpMod {
         // 1. Config
         McpConfig.load(configDir);
 
-        // 2. Log Sniffer
+        // 2. Log Sniffer & Input Simulation
         InGameLogSniffer.initialize();
+        InputSimulationManager.initialize();
 
         // 3. Register MCP Tools
         McpToolRegistry.registerTool(new GetPlayerStateTool());
@@ -34,6 +37,7 @@ public class MinecraftMcpMod {
         McpToolRegistry.registerTool(new SendChatTool());
         McpToolRegistry.registerTool(new GetLatestLogsTool());
         McpToolRegistry.registerTool(new InspectNbtTool());
+        McpToolRegistry.registerTool(new SimulateInputTool());
 
         // 4. Start Netty Server
         McpNettyServer.start(McpConfig.getInstance().serverPort);
