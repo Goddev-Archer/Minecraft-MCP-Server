@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+        maven { url "https://maven.fabricmc.net/" }
+        maven { url "https://maven.architectury.dev/" }
+        maven { url "https://maven.neoforged.net/releases/" }
+        maven { url "https://libraries.minecraft.net/" }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id "dev.architectury.loom" version "1.7.423" apply false
+    id "architectury-plugin" version "3.4.164" apply false
+    id "com.github.johnrengelman.shadow" version "8.1.1" apply false
+}
+
+rootProject.name = "minecraft-mcp-server"
+
+include("common")
+include("fabric")
+include("neoforge")

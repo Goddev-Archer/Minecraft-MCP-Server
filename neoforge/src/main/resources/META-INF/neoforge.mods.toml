@@ -1,0 +1,24 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="minecraft_mcp"
+version="${version}"
+displayName="Minecraft MCP Server"
+description="Local Model Context Protocol (MCP) server for Minecraft. Enables AI agents to interact, test mods, and provide in-game support."
+displayTest="IGNORE_ALL_VERSION"
+
+[[dependencies.minecraft_mcp]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.77,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.minecraft_mcp]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1,)"
+    ordering="NONE"
+    side="CLIENT"

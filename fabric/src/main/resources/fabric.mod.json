@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft_mcp",
+  "version": "${version}",
+  "name": "Minecraft MCP Server",
+  "description": "Local Model Context Protocol (MCP) server for Minecraft. Enables AI agents to interact, test mods, and provide in-game support.",
+  "authors": ["Minecraft-MCP Team"],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "de.mcp.fabric.MinecraftMcpFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=1.21.1",
+    "fabric-api": "*"
+  }
+}

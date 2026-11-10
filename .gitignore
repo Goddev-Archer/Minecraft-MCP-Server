@@ -1,0 +1,54 @@
+# ==========================================
+# Gradle & Java Build
+# ==========================================
+.gradle/
+build/
+**/build/
+bin/
+out/
+*.class
+
+# ==========================================
+# Minecraft Run / Client Environment
+# ==========================================
+# Ignoriert erzeugte Welten, Logs, Caches und Test-Mods
+/run/saves/
+/run/logs/
+/run/crash-reports/
+/run/.fabric/
+/run/usercache.json
+/run/usernamecache.json
+/run/mods/*.jar
+
+# ==========================================
+# Node.js (Bridge CLI)
+# ==========================================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# IDEs & Editoren
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# ==========================================
+# Betriebssystem
+# ==========================================
+Thumbs.db
+desktop.ini
+.DS_Store
