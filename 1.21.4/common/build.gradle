@@ -1,0 +1,8 @@
+architectury {
+    common("fabric", "neoforge")
+}
+
+dependencies {
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+    implementation "io.netty:netty-codec-http:4.1.97.Final"
+}

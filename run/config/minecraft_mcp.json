@@ -1,7 +1,0 @@
-{
-  "serverPort": 25585,
-  "authToken": "dev-token-mcp-2024",
-  "enableAuth": false,
-  "inGameAiPrefix": "[§bAI-Assistant§r] ",
-  "maxLogBufferSize": 300
-}

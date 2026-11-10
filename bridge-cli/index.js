@@ -21,6 +21,8 @@ for (let i = 2; i < process.argv.length; i++) {
 // Auto-discover token from standard .minecraft / workspace configs
 function discoverToken() {
   const possiblePaths = [
+    path.join(__dirname, '..', '1.21.1', 'run', 'config', 'minecraft_mcp.json'),
+    path.join(__dirname, '..', '1.21.4', 'run', 'config', 'minecraft_mcp.json'),
     path.join(__dirname, '..', 'run', 'config', 'minecraft_mcp.json'),
     path.join(__dirname, '..', 'config', 'minecraft_mcp.json'),
     path.join(process.cwd(), 'run', 'config', 'minecraft_mcp.json'),

@@ -1,10 +1,16 @@
 @echo off
-title Minecraft MCP - Fabric Test Client (1.21.1)
+title Minecraft MCP Test Client Launcher
 echo ========================================================
-echo   Starting Minecraft 1.21.1 Fabric Test Client...
-echo   MCP Server will listen on http://127.0.0.1:25585
-echo   In-Game Commands: /ai [frage], /mcp status, /mcp log
+echo   Minecraft MCP Test Client Launcher
 echo ========================================================
-echo.
-call gradlew.bat :fabric:runClient --no-daemon
-pause
+echo   [1] Minecraft 1.21.1 (Fabric)
+echo   [2] Minecraft 1.21.4 (Fabric)
+echo ========================================================
+set /p choice="Waehle eine Version (1 oder 2) [Standard: 1]: "
+if "%choice%"=="2" (
+    cd 1.21.4
+    call launch-test-client.bat
+) else (
+    cd 1.21.1
+    call launch-test-client.bat
+)
