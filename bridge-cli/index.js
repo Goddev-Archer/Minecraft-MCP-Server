@@ -217,9 +217,11 @@ function sendRpc(requestJson) {
     port: port,
     path: '/mcp/rpc',
     method: 'POST',
+    agent: false,
     headers: {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(requestJson),
+      'Connection': 'close',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
     timeout: 3000
