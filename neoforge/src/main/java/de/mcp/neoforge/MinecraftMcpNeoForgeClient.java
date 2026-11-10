@@ -35,8 +35,9 @@ public class MinecraftMcpNeoForgeClient {
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void onRegisterClientCommands(RegisterClientCommandsEvent event) {
-        var dispatcher = event.getDispatcher();
+        CommandDispatcher dispatcher = (CommandDispatcher) event.getDispatcher();
 
         // /ai <prompt>
         dispatcher.register(literal("ai")

@@ -18,9 +18,11 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-// Auto-discover token from standard .minecraft config if not provided
-if (!token) {
+// Auto-discover token from standard .minecraft / workspace configs
+function discoverToken() {
   const possiblePaths = [
+    path.join(__dirname, '..', 'run', 'config', 'minecraft_mcp.json'),
+    path.join(__dirname, '..', 'config', 'minecraft_mcp.json'),
     path.join(process.cwd(), 'run', 'config', 'minecraft_mcp.json'),
     path.join(process.cwd(), 'config', 'minecraft_mcp.json'),
     process.platform === 'win32'
@@ -35,15 +37,159 @@ if (!token) {
         if (config.authToken) {
           token = config.authToken;
           if (config.serverPort) port = config.serverPort;
-          break;
+          return token;
         }
       } catch (ignored) {}
     }
   }
+  return null;
 }
 
-// Forward JSON-RPC request from stdin to Minecraft HTTP server
+if (!token) {
+  discoverToken();
+}
+
+// Built-in tool definitions for offline capability discovery
+const FALLBACK_TOOLS = [
+  {
+    name: "get_player_state",
+    description: "Liefert den aktuellen Zustand des Spielers (Leben, Hunger, Position, Dimension, Blickrichtung, Inventar, Effekte).",
+    inputSchema: {
+      type: "object",
+      properties: {}
+    }
+  },
+  {
+    name: "raycast_target",
+    description: "Ermittelt das Ziel (Block oder Entity), das der Spieler aktuell im Fadenkreuz anvisiert, inklusive BlockState-Properties.",
+    inputSchema: {
+      type: "object",
+      properties: {}
+    }
+  },
+  {
+    name: "scan_blocks",
+    description: "Scannt die Blöcke in einem Radius um den Spieler. Nützlich zur Orientierung, Suche nach Erzen, Maschinen oder Kisten.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        radius: {
+          type: "integer",
+          description: "Radius in Blöcken (Standard: 5, Max: 12)."
+        },
+        filter: {
+          type: "array",
+          description: "Optionale Filter-Begriffe (z. B. [\"ore\", \"chest\", \"machine\"]).",
+          items: { type: "string" }
+        }
+      }
+    }
+  },
+  {
+    name: "execute_command",
+    description: "Führt einen Minecraft-Befehl als Client-Spieler aus (z. B. /gamemode, /tp, /give, /time).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        command: {
+          type: "string",
+          description: "Der auszuführende Befehl (mit oder ohne führenden Slash)."
+        }
+      },
+      required: ["command"]
+    }
+  },
+  {
+    name: "send_chat",
+    description: "Sendet eine Chat-Nachricht in das Spiel. Kann entweder lokal als KI-Antwort im HUD angezeigt oder als öffentlicher Chat gesendet werden.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        message: {
+          type: "string",
+          description: "Der zu sendende Text."
+        },
+        target: {
+          type: "string",
+          enum: ["client_hud", "server_chat"],
+          description: "'client_hud' für lokale Anzeige (Standard), 'server_chat' für öffentlichen Chat."
+        }
+      },
+      required: ["message"]
+    }
+  },
+  {
+    name: "get_latest_logs",
+    description: "Liest die neuesten Minecraft- und Mod-Logeinträge aus dem Speicher (besonders nützlich zum Finden von Exceptions, Fehlern und Warnungen).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: {
+          type: "integer",
+          description: "Maximale Anzahl an Einträgen (Standard: 30, Max: 100)."
+        },
+        min_level: {
+          type: "string",
+          enum: ["INFO", "WARN", "ERROR"],
+          description: "Mindest-Loglevel (Standard: INFO)."
+        }
+      }
+    }
+  },
+  {
+    name: "inspect_nbt",
+    description: "Liest NBT- und Komponentendaten eines anvisierten Blocks, einer Entity oder des Items in der Hand aus. Ideal zum Debuggen komplexer Mod-Maschinen.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        target: {
+          type: "string",
+          enum: ["target_block", "main_hand"],
+          description: "Ziel der Inspektion (target_block oder main_hand)."
+        }
+      }
+    }
+  }
+];
+
+const FALLBACK_RESOURCES = [
+  {
+    uri: "minecraft://logs/recent",
+    name: "Recent Minecraft Logs",
+    mimeType: "text/plain"
+  },
+  {
+    uri: "minecraft://player/state",
+    name: "Current Player State",
+    mimeType: "application/json"
+  }
+];
+
+// Handle JSON-RPC requests
 function sendRpc(requestJson) {
+  let parsed = null;
+  try {
+    parsed = JSON.parse(requestJson);
+  } catch (err) {
+    process.stdout.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: null,
+      error: { code: -32700, message: 'Parse error: ' + err.message }
+    }) + '\n');
+    return;
+  }
+
+  // Notifications do not expect a response
+  if (parsed.method === 'notifications/initialized') {
+    return;
+  }
+
+  if (!token) {
+    discoverToken();
+  }
+
+  const reqId = parsed.id !== undefined ? parsed.id : null;
+
   const options = {
     hostname: '127.0.0.1',
     port: port,
@@ -53,7 +199,8 @@ function sendRpc(requestJson) {
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(requestJson),
       ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-    }
+    },
+    timeout: 3000
   };
 
   const req = http.request(options, (res) => {
@@ -67,6 +214,7 @@ function sendRpc(requestJson) {
       } else {
         const errObj = {
           jsonrpc: '2.0',
+          id: reqId,
           error: {
             code: -32603,
             message: `Minecraft MCP HTTP Error ${res.statusCode}: ${data}`
@@ -77,9 +225,87 @@ function sendRpc(requestJson) {
     });
   });
 
+  req.on('timeout', () => {
+    req.destroy(new Error('Connection timed out'));
+  });
+
   req.on('error', (err) => {
+    // Provide graceful fallbacks when Minecraft is not currently running
+    if (parsed.method === 'initialize') {
+      const initRes = {
+        jsonrpc: '2.0',
+        id: reqId,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {},
+            resources: {}
+          },
+          serverInfo: {
+            name: 'minecraft-mcp-server',
+            version: '1.0.0'
+          }
+        }
+      };
+      process.stdout.write(JSON.stringify(initRes) + '\n');
+      return;
+    }
+
+    if (parsed.method === 'tools/list') {
+      const toolsRes = {
+        jsonrpc: '2.0',
+        id: reqId,
+        result: {
+          tools: FALLBACK_TOOLS
+        }
+      };
+      process.stdout.write(JSON.stringify(toolsRes) + '\n');
+      return;
+    }
+
+    if (parsed.method === 'resources/list') {
+      const resRes = {
+        jsonrpc: '2.0',
+        id: reqId,
+        result: {
+          resources: FALLBACK_RESOURCES
+        }
+      };
+      process.stdout.write(JSON.stringify(resRes) + '\n');
+      return;
+    }
+
+    if (parsed.method === 'ping') {
+      const pingRes = {
+        jsonrpc: '2.0',
+        id: reqId,
+        result: {}
+      };
+      process.stdout.write(JSON.stringify(pingRes) + '\n');
+      return;
+    }
+
+    if (parsed.method === 'tools/call') {
+      const toolErrRes = {
+        jsonrpc: '2.0',
+        id: reqId,
+        result: {
+          content: [
+            {
+              type: 'text',
+              text: `[Minecraft-MCP] Minecraft ist aktuell noch nicht gestartet oder die Mod antwortet nicht auf Port ${port}. Bitte starte Minecraft mit der Mod (z. B. via launch-test-client.bat oder im Modpack), um diesen Befehl auszuführen.`
+            }
+          ],
+          isError: true
+        }
+      };
+      process.stdout.write(JSON.stringify(toolErrRes) + '\n');
+      return;
+    }
+
     const errObj = {
       jsonrpc: '2.0',
+      id: reqId,
       error: {
         code: -32603,
         message: `Could not connect to Minecraft MCP Server on port ${port}. Is Minecraft running with the mod loaded? (${err.message})`
@@ -94,6 +320,10 @@ function sendRpc(requestJson) {
 
 // Connect to SSE stream for live events and in-game prompts
 function connectSse() {
+  if (!token) {
+    discoverToken();
+  }
+
   const options = {
     hostname: '127.0.0.1',
     port: port,
@@ -107,7 +337,6 @@ function connectSse() {
 
   const sseReq = http.request(options, (res) => {
     res.on('data', (chunk) => {
-      // Broadcast events can be logged or processed by agent
       const str = chunk.toString();
       if (str.includes('event: client_chat_prompt')) {
         process.stderr.write(`[Minecraft-MCP-Bridge] Incoming in-game AI prompt from player!\n`);
@@ -119,7 +348,6 @@ function connectSse() {
   });
 
   sseReq.on('error', () => {
-    // Retry quietly
     setTimeout(connectSse, 5000);
   });
 

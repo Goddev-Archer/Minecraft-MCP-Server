@@ -20,14 +20,12 @@ configurations {
         canBeResolved = true
         canBeConsumed = false
     }
-
-    neoForge
-    compileClasspath.extendsFrom neoForge
-    runtimeClasspath.extendsFrom neoForge
 }
 
 dependencies {
-    neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
+    modImplementation "net.neoforged:neoforge:$rootProject.neoforge_version"
+    compileOnly "net.neoforged.fancymodloader:loader:4.0.31"
+    compileOnly "net.neoforged:bus:8.0.2"
     modApi "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
     implementation "io.netty:netty-codec-http:4.1.97.Final"
@@ -46,6 +44,7 @@ processResources {
 }
 
 shadowJar {
+    exclude "net/minecraft/commands/**"
     configurations = [project.configurations.shadowBundle]
     archiveClassifier = "dev-shadow"
 }
