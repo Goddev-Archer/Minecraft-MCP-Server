@@ -2,7 +2,6 @@ package de.mcp;
 
 import de.mcp.api.McpToolRegistry;
 import de.mcp.config.McpConfig;
-import de.mcp.input.InputSimulationManager;
 import de.mcp.log.InGameLogSniffer;
 import de.mcp.server.McpNettyServer;
 import de.mcp.tools.ExecuteCommandTool;
@@ -25,9 +24,8 @@ public class MinecraftMcpMod {
         // 1. Config
         McpConfig.load(configDir);
 
-        // 2. Log Sniffer & Input Simulation
+        // 2. Log Sniffer
         InGameLogSniffer.initialize();
-        InputSimulationManager.initialize();
 
         // 3. Register MCP Tools
         McpToolRegistry.registerTool(new GetPlayerStateTool());

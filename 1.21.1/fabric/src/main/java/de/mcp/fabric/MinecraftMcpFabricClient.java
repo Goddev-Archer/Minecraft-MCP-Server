@@ -5,12 +5,14 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import de.mcp.MinecraftMcpMod;
 import de.mcp.chat.InGameChatManager;
 import de.mcp.config.McpConfig;
+import de.mcp.input.InputSimulationManager;
 import de.mcp.log.InGameLogSniffer;
 import de.mcp.server.McpNettyServer;
 import de.mcp.server.SseConnectionManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.util.List;
@@ -21,6 +23,9 @@ public class MinecraftMcpFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         // Initialize common mod logic
         MinecraftMcpMod.initClient(FabricLoader.getInstance().getConfigDir());
+
+        // Register Fabric client tick for physical input simulation
+        ClientTickEvents.START_CLIENT_TICK.register(InputSimulationManager::onClientTick);
 
         // Register client-side commands
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {

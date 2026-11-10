@@ -6,14 +6,16 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import de.mcp.MinecraftMcpMod;
 import de.mcp.chat.InGameChatManager;
 import de.mcp.config.McpConfig;
+import de.mcp.input.InputSimulationManager;
 import de.mcp.log.InGameLogSniffer;
 import de.mcp.server.McpNettyServer;
 import de.mcp.server.SseConnectionManager;
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.client.MinecraftClient;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -32,7 +34,14 @@ public class MinecraftMcpNeoForgeClient {
 
             // Register client commands
             NeoForge.EVENT_BUS.addListener(this::onRegisterClientCommands);
+
+            // Register client tick for physical input simulation
+            NeoForge.EVENT_BUS.addListener(this::onClientTick);
         }
+    }
+
+    private void onClientTick(ClientTickEvent.Pre event) {
+        InputSimulationManager.onClientTick(MinecraftClient.getInstance());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

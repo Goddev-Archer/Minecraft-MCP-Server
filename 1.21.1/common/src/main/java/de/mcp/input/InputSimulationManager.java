@@ -1,6 +1,5 @@
 package de.mcp.input;
 
-import dev.architectury.event.events.client.ClientTickEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 
@@ -10,13 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class InputSimulationManager {
     private static final Map<String, AtomicInteger> ACTIVE_KEYS = new ConcurrentHashMap<>();
-    private static boolean initialized = false;
-
-    public static synchronized void initialize() {
-        if (initialized) return;
-        ClientTickEvent.CLIENT_PRE.register(InputSimulationManager::onClientTick);
-        initialized = true;
-    }
 
     public static void holdKey(String action, int ticks) {
         ACTIVE_KEYS.put(action.toLowerCase(), new AtomicInteger(ticks));
@@ -43,7 +35,7 @@ public class InputSimulationManager {
         ACTIVE_KEYS.clear();
     }
 
-    private static void onClientTick(MinecraftClient client) {
+    public static void onClientTick(MinecraftClient client) {
         if (client == null || client.player == null || client.options == null) {
             return;
         }
