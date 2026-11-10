@@ -18,7 +18,7 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 
-// Auto-discover token from standard .minecraft / workspace configs
+// Auto-discover token from standard .minecraft / workspace configs / mod launchers
 function discoverToken() {
   const possiblePaths = [
     path.join(__dirname, '..', '1.21.1', 'run', 'config', 'minecraft_mcp.json'),
@@ -31,6 +31,26 @@ function discoverToken() {
       ? path.join(os.homedir(), 'AppData', 'Roaming', '.minecraft', 'config', 'minecraft_mcp.json')
       : path.join(os.homedir(), '.minecraft', 'config', 'minecraft_mcp.json')
   ];
+
+  // Also scan launcher profiles (Modrinth, Prism, CurseForge)
+  if (process.platform === 'win32') {
+    const launcherDirs = [
+      path.join(os.homedir(), 'AppData', 'Roaming', 'ModrinthApp', 'profiles'),
+      path.join(os.homedir(), 'AppData', 'Roaming', 'PrismLauncher', 'instances'),
+      path.join(os.homedir(), 'curseforge', 'minecraft', 'Instances')
+    ];
+    for (const ld of launcherDirs) {
+      if (fs.existsSync(ld)) {
+        try {
+          const profiles = fs.readdirSync(ld);
+          for (const prof of profiles) {
+            possiblePaths.push(path.join(ld, prof, 'config', 'minecraft_mcp.json'));
+            possiblePaths.push(path.join(ld, prof, '.minecraft', 'config', 'minecraft_mcp.json'));
+          }
+        } catch (ignored) {}
+      }
+    }
+  }
 
   for (const p of possiblePaths) {
     if (fs.existsSync(p)) {
