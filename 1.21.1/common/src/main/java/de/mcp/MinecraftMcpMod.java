@@ -12,6 +12,7 @@ import de.mcp.tools.RaycastTargetTool;
 import de.mcp.tools.ScanBlocksTool;
 import de.mcp.tools.SendChatTool;
 import de.mcp.tools.SimulateInputTool;
+import de.mcp.tools.TakeScreenshotTool;
 
 import java.nio.file.Path;
 
@@ -36,6 +37,7 @@ public class MinecraftMcpMod {
         McpToolRegistry.registerTool(new GetLatestLogsTool());
         McpToolRegistry.registerTool(new InspectNbtTool());
         McpToolRegistry.registerTool(new SimulateInputTool());
+        McpToolRegistry.registerTool(new TakeScreenshotTool());
 
         // 4. Start Netty Server
         McpNettyServer.start(McpConfig.getInstance().serverPort);

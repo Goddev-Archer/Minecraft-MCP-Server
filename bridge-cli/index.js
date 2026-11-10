@@ -196,6 +196,31 @@ const FALLBACK_TOOLS = [
         }
       }
     }
+  },
+  {
+    name: "take_screenshot",
+    description: "Nimmt einen Screenshot der aktuellen Spielansicht auf. Kann optional vor dem Bild den Blickwinkel (yaw, pitch) anpassen und liefert den Dateipfad sowie Bildmaße zurück.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        filename: {
+          type: "string",
+          description: "Optionaler Dateiname (Standard: mcp_screenshot_TIMESTAMP.png)."
+        },
+        yaw: {
+          type: "number",
+          description: "Optionaler Blickwinkel Yaw (horizontale Drehung), wohin der Spieler vor der Aufnahme schauen soll."
+        },
+        pitch: {
+          type: "number",
+          description: "Optionaler Blickwinkel Pitch (Neigung -90 bis 90)."
+        },
+        include_base64: {
+          type: "boolean",
+          description: "Ob der Base64-String des Bildes im JSON zurückgegeben werden soll (Standard: false)."
+        }
+      }
+    }
   }
 ];
 
